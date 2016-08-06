@@ -56,9 +56,31 @@ foreach ($esx in $esx_hosts) {
     Get-VDSwitch $vds | Add-VDSwitchPhysicalNetworkAdapter -VMHostPhysicalNic $nic -Confirm:$false
 }
 
+
+# attach vmnic0 to management Traffic
+foreach ($esx in $esx_hosts) {
+    $dvportgroup = Get-VDPortgroup -name $pgManagement -VDSwitch $vds
+    $vmk = Get-VMHostNetworkAdapter -name vmk0 -VMHost $esx
+    Set-VMHostNetworkAdapter -PortGroup $dvportgroup -VirtualNic $vmk -Confirm:$false
+}
+
+# list host network apdater and enable Management Traffic and vMotion and disable vSAN
+Get-VMHostNetworkAdapter | where { $_.PortGroupName -eq $pgManagement } | Set-VMHostNetworkAdapter -VMotionEnabled $true -VsanTrafficEnabled $false -ManagementTrafficEnabled $true
+
+
+# enable vmware HA cluster mode to enable High availability
+Set-Cluster $(get-cluster micro_cluster_a) -HAEnabled:$true -Confirm:$false
+# enable vmware DRS mode
+Set-Cluster $(get-cluster micro_cluster_a) -DRSEnabled:$true -DRSAutomationLevel "Manual" -Confirm:$false
+
+
+
+
+####### Use this instruction when you have different network topology ########
+
 $vmotion_net = @{
-    'esxi-a-01.example.com'='192.168.0.10';
-    'esxi-a-02.example.com'='192.168.0.11';
+    'esxi-a-01.example.com'='192.168.1.10';
+    'esxi-a-02.example.com'='192.168.1.11';
 }
 
 
@@ -87,16 +109,3 @@ foreach ($esx in $esx_hosts) {
 # list host network apdater and enable vMotion Traffic
 Get-VMHostNetworkAdapter | where { $_.PortGroupName -eq $pgvMotion } | Set-VMHostNetworkAdapter -VMotionEnabled $true
 
-# attach vmnic0 to management Traffic
-foreach ($esx in $esx_hosts) {
-    $dvportgroup = Get-VDPortgroup -name $pgManagement -VDSwitch $vds
-    $vmk = Get-VMHostNetworkAdapter -name vmk0 -VMHost $esx
-    Set-VMHostNetworkAdapter -PortGroup $dvportgroup -VirtualNic $vmk -Confirm:$false
-}
-
-
-
-# enable vmware HA cluster mode to enable High availability
-Set-Cluster $(get-cluster micro_cluster_a) -HAEnabled:$true -Confirm:$false
-# enable vmware DRS mode
-Set-Cluster $(get-cluster micro_cluster_a) -DRSEnabled:$true -DRSAutomationLevel "Manual" -Confirm:$false
