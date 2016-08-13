@@ -77,6 +77,7 @@ Set-Cluster $(get-cluster micro_cluster_a) -DRSEnabled:$true -DRSAutomationLevel
 
 
 ####### Use this instruction when you have different network topology ########
+####### vMotion in vmnic1 #######
 
 $vmotion_net = @{
     'esxi-a-01.example.com'='192.168.1.10';
