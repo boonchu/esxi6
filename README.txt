@@ -30,6 +30,8 @@ vib                            DatastoreFolder
 ```
 
  * How to install vib with fabric
+    * https://gist.github.com/pix0r/2002643
+    * https://labs.vmware.com/flings/esxi-embedded-host-client
 
 ```
 $ fab -f ./esxi_fabric.py e:esxi install_vib
